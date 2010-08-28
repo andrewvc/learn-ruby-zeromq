@@ -2,7 +2,6 @@ require 'rubygems'
 require 'ffi-rzmq'
 Thread.abort_on_exception = true
 
-ctx = ZMQ::Context.new(1)
 
 # PUB and SUB sockts work together to broadcast messages out to many clients
 # A single PUB socket can talk to multiple SUB sockts at the same time.
@@ -20,6 +19,8 @@ ctx = ZMQ::Context.new(1)
 #                  sub_sock1     sub_sock2
 #
 # Each socket will get its own thread, so you'll see them run simultanously
+
+ctx = ZMQ::Context.new(1)
 
 # This is our publisher
 Thread.new do
