@@ -1,6 +1,9 @@
 # Learn ZeroMQ by example! #
 
-**This is currently a work in progress**
+## A work in progress ##
+
+If you'd like to help write examples, or if you've found an error, please write me, or fork and patch this repo.
+I'm still a ZeroMQ noob, so some stuff may not be so perfect. If there are any errors, please send in a patch!
 
 ## About ZeroMQ ##
 
@@ -9,7 +12,6 @@ ZeroMQ is one of the most exciting technologies emerging today. Follow along wit
 Be sure to follow them in order, as concepts shown in earlier chapters won't be described later on.
 
 ## Getting Started ##
-
 
 1. Get a functioning ruby, either jruby (recommended) or 1.9.2. I recommend using rvm to manage multiple rubies
 2. If you're using jruby `gem install ffi` will work fine. **If using 1.9.2 you MUST install the special ffi gem** included here, or build it from HEAD yourself.
