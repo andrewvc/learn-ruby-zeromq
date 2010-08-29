@@ -26,7 +26,7 @@ push_thread = Thread.new do
   7.times do |i|
     msg = "#{i + 1} Potato"
     puts "Sending #{msg}"
-    #Sending messages with ZeroMQ doesn't block
+    #This will block till a PULL socket connects`
     push_sock.send_string(msg)
     
     #Lets wait a second between messages
@@ -40,6 +40,8 @@ pull_threads = []
 2.times do |i|
   pull_threads << Thread.new do
     pull_sock = ctx.socket(ZMQ::PULL)
+    sleep 3
+    puts "Pull #{i} connecting"
     pull_sock.connect('tcp://127.0.0.1:2200')
     
     begin
