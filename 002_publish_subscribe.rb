@@ -4,11 +4,19 @@ Thread.abort_on_exception = true
 
 
 # PUB and SUB sockts work together to broadcast messages out to many clients
-# A single PUB socket can talk to multiple SUB sockts at the same time.
+# A single PUB socket can talk to multiple SUB sockets at the same time.
 # Messages only go one way, from the PUB to the SUB.
 # 
 # SUB sockets can filter the messages they receive, checking the prefix of the message
 # for a center sequence of bytes, discarding messages that don't match.
+#
+# One important thing to note about PUB sockets, is that when created with 'bind'
+# that is when listening for incoming SUB connections, they don't queue messages unless
+# there's a connected SUB socket, their messages are effectively black holed.
+#
+# So, don't plan on all PUB messages making their way anywhere unless there's a connected
+# SUB socket. When created with 'connect' (which is perhaps atypical for a pub/sub topology),
+# queing of messages does takes place.
 #
 # We're also going to learn about multipart messages in this example
 #
