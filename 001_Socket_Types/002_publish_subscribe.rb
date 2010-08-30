@@ -8,7 +8,7 @@ Thread.abort_on_exception = true
 # Messages only go one way, from the PUB to the SUB.
 # 
 # SUB sockets can filter the messages they receive, checking the prefix of the message
-# for a center sequence of bytes, discarding messages that don't match.
+# for an exact sequence of bytes, discarding messages that don't start with this prefix.
 #
 # One important thing to note about PUB sockets, is that when created with 'bind'
 # that is when listening for incoming SUB connections, they don't queue messages unless

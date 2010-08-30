@@ -2,12 +2,13 @@ require 'rubygems'
 require 'ffi-rzmq'
 Thread.abort_on_exception = true
 
-# XREP sockets let a single REP socket connect to many connecting REQ sockets.
-# They accomplish this by tracking each connecting REQ socket's identity.
+# XREP sockets let a single XREP socket connect to many connecting REQ sockets.
+# XREP accomplish this by tracking each connecting REQ socket's identity.
+# Think of it as a multiplexed REP socket.
 #
 # XREP sockets receive messages in at least 3 message parts:
 # The first part is the identity of the REQ socket connecting to it.
-# The second part is an empty message
+# The second part is an empty message, known as the delimiter
 # Subsequent parts are the actual body of the message.
 #
 # The first two parts don't need to be sent manually by the connecting REQ socket
