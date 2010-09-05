@@ -11,6 +11,12 @@ Thread.abort_on_exception = true
 # The second part is an empty message, known as the delimiter
 # Subsequent parts are the actual body of the message.
 #
+# You may be wondering why an empty delimiter message is needed, 
+# the answer is forwarding. While we won't cover it in this introductory
+# example, messages can have multiple identiy message parts if the messages
+# are passed through a chain of ZeroMQ XREQ/XREP sockets.
+# See http://zeromq.wikidot.com/recipe:new-recipe for an example.
+#
 # The first two parts don't need to be sent manually by the connecting REQ socket
 # The XREP socket adds them in itself
 #
