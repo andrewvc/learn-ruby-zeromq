@@ -3,13 +3,13 @@
 ## A Work in Progress ##
 
 If you'd like to help write examples, or if you've found an error, please write me, or fork and patch this repo.
-I'm still new to ZeroMQ myself, so some stuff may not be so perfect. If there are any errors, please send in a patch!
 
 ## About ZeroMQ ##
 
-ZeroMQ is one of the most exciting technologies emerging today. Follow along with these tutorials explaining the usage of the ffi-rzmq gem.
+ZeroMQ is one of the simplest and most exciting ways to build high performance, concurrent local and network applications.
+ZeroMQ uses a sockets style API to make powerful message-based programs fun to build.
 
-Be sure to follow them in order, as concepts shown in earlier chapters won't be described later on.
+Be sure to follow the examples in order, as concepts shown in earlier chapters won't be described later on.
 
 ## Getting Started ##
 
