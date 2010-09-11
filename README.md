@@ -1,4 +1,4 @@
-# Learn ZeroMQ by example! #
+# Learn ZeroMQ by Example! #
 
 ## A Work in Progress ##
 
@@ -18,7 +18,7 @@ Be sure to follow them in order, as concepts shown in earlier chapters won't be 
 3. Download and install ZeroMQ from the ZeroMQ [download page](http://www.zeromq.org/area:download). `./configure && make && make install`
 4. `gem install ffi-rzmq zmqmachine`. Make sure you have the ffi-rzmq gem >= 0.5.1 . 
 
-now You're set! Follow the numbered examples in order.
+Now you're set! Follow the numbered examples in order, where there are no numbers, there is no order.
 
 ## Thanks Chuck! ##
 
