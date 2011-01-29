@@ -14,9 +14,9 @@ Be sure to follow the examples in order, as concepts shown in earlier chapters w
 ## Getting Started ##
 
 1. Get a functioning ruby, either jruby (recommended) or 1.9.2. I recommend using [rvm](http://rvm.beginrescueend.com/) to manage multiple rubies
-2. If you're using jruby the ffi gem it comes with will work fine. **If using 1.9.2 you MUST install the special ffi gem** included here, or build it from HEAD yourself.
+2. If you're using jruby the ffi gem it comes with will work fine. **If using 1.9.2 you MUST install the special ffi gem**.
 3. Download and install ZeroMQ from the ZeroMQ [download page](http://www.zeromq.org/area:download). `./configure && make && make install`
-4. `gem install ffi-rzmq zmqmachine`. Make sure you have the ffi-rzmq gem >= 0.5.1 . 
+4. `gem install ffi ffi-rzmq zmqmachine`. Make sure you have the ffi-rzmq gem >= 0.5.1 . 
 
 Now you're set! Follow the numbered examples in order, where there are no numbers, there is no order.
 
