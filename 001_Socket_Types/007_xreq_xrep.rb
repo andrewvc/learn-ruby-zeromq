@@ -9,13 +9,23 @@ require 'rubygems'
 require 'ffi-rzmq'
 Thread.abort_on_exception = true
 
+def error_check(rc)
+  if ZMQ::Util.resultcode_ok?(rc)
+    false
+  else
+    STDERR.puts "Operation failed, errno [#{ZMQ::Util.errno}] description [#{ZMQ::Util.error_string}]"
+    caller(1).each { |callstack| STDERR.puts(callstack) }
+    true
+  end
+end
+
 # create context
 ctx = ZMQ::Context.new(1)
 
 # our server
 server = ctx.socket(ZMQ::XREP)
-server.setsockopt(ZMQ::IDENTITY, "server")
-server.bind('tcp://127.0.0.1:7777')
+error_check(server.setsockopt(ZMQ::IDENTITY, "server"))
+error_check(server.bind('tcp://127.0.0.1:7777'))
 
 
 # we add the two clients, set their identity and connect them
@@ -26,11 +36,11 @@ clients = [
   ]
 
 
-clients[0].setsockopt(ZMQ::IDENTITY, "client1")
-clients[0].connect('tcp://127.0.0.1:7777')
+error_check(clients[0].setsockopt(ZMQ::IDENTITY, "client1"))
+error_check(clients[0].connect('tcp://127.0.0.1:7777'))
 
-clients[1].setsockopt(ZMQ::IDENTITY, "client2")
-clients[1].connect('tcp://127.0.0.1:7777')
+error_check(clients[1].setsockopt(ZMQ::IDENTITY, "client2"))
+error_check(clients[1].connect('tcp://127.0.0.1:7777'))
 
 
 # now we start the real stuff, create a poller to monitor
@@ -45,11 +55,11 @@ poller.register_readable(clients[1])
 
 
 # send a message from each client to the server
-clients[0].send_string('', ZMQ::SNDMORE)
-clients[0].send_string('hello from client 1')
+error_check(clients[0].send_string('', ZMQ::SNDMORE))
+error_check(clients[0].send_string('hello from client 1'))
 
-clients[1].send_string('', ZMQ::SNDMORE)
-clients[1].send_string('hello from client 2')
+error_check(clients[1].send_string('', ZMQ::SNDMORE))
+error_check(clients[1].send_string('hello from client 2'))
 
 puts "Main Loop Started"
 
@@ -63,37 +73,40 @@ th = Thread.new do
     
     # poller.readables includes all the sockets where data is
     # available
+    identity = ''
+    delimiter = ''
+    msg = ''
     poller.readables.each do |s|
       case s
       when server
         # destination's identity
-        identity = s.recv_string()
+        error_check(s.recv_string(identity))
         # just a blank message to separate
         # headers from data
-        delimiter = s.recv_string()
+        error_check(s.recv_string(delimiter))
         # data can include more than a single part
-        msg = s.recv_string()
+        error_check(s.recv_string(msg))
         puts "Server: #{identity} sent <#{msg}>"
         
         if msg == "exit"
           end_loop = true
         else
-          server.send_string(identity, ZMQ::SNDMORE)
-          server.send_string("", ZMQ::SNDMORE)
-          server.send_string("Hello #{identity}, nice to meet you !")
+          error_check(server.send_string(identity, ZMQ::SNDMORE))
+          error_check(server.send_string("", ZMQ::SNDMORE))
+          error_check(server.send_string("Hello #{identity}, nice to meet you !"))
         end
     
       when clients[0]
         # for XREQ sockets you do not receive the identity of
         # the server which answered the request so the message parts
         # start with the blank delimiter
-        delimiter = s.recv_string()
-        msg = s.recv_string()
+        error_check(s.recv_string(delimiter))
+        error_check(s.recv_string(msg))
         puts "Client1 received '#{msg}'"
       
       when clients[1]
-        delimiter = s.recv_string()
-        msg = s.recv_string()
+        error_check(s.recv_string(delimiter))
+        error_check(s.recv_string(msg))
         puts "Client2 received '#{msg}'"
       
       end
@@ -105,13 +118,25 @@ end
 # our whole process but only the calling thread
 sleep(1)
 
-server.send_string("client2", ZMQ::SNDMORE)
-server.send_string("", ZMQ::SNDMORE)
-server.send_string('i am watching you !')
+error_check(server.send_string("client2", ZMQ::SNDMORE))
+error_check(server.send_string("", ZMQ::SNDMORE))
+error_check(server.send_string('i am watching you !'))
 
 sleep(1)
 
-clients[1].send_string('', ZMQ::SNDMORE)
-clients[1].send_string('exit')
+error_check(clients[1].send_string('', ZMQ::SNDMORE))
+error_check(clients[1].send_string('exit'))
 
 th.join()
+
+
+# A successful run looks like:
+
+#$ ruby 007_xreq_xrep.rb 
+#Main Loop Started
+#Server: client1 sent <hello from client 1>
+#Server: client2 sent <hello from client 2>
+#Client1 received 'Hello client1, nice to meet you !'
+#Client2 received 'Hello client2, nice to meet you !'
+#Client2 received 'i am watching you !'
+#Server: client2 sent <exit>

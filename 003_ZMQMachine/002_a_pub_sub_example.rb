@@ -71,3 +71,26 @@ end
 
 Thread.new { sleep 5; reactor.stop }
 reactor.join
+
+
+# A successful run should look like:
+
+#  $ ruby 002_a_pub_sub_example.rb 
+#  sub1: Message 1
+#  sub2: Message 1
+#  sub1: Message 2
+#  sub2: Message 2
+#  sub1: Message 3
+#  sub2: Message 3
+#  sub1: Message 4
+#  sub2: Message 4
+#  sub1: Message 5
+#  sub2: Message 5
+#  sub1: Message 6
+#  sub2: Message 6
+#  sub1: Message 7
+#  sub2: Message 7
+#  sub1: Message 8
+#  sub2: Message 8
+#  sub1: Message 9
+#  sub2: Message 9

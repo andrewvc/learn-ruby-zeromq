@@ -28,14 +28,27 @@ Thread.abort_on_exception = true
 #
 # Each socket will get its own thread, so you'll see them run simultanously
 
-ctx = ZMQ::Context.new(1)
+def error_check(rc)
+  if ZMQ::Util.resultcode_ok?(rc)
+    false
+  else
+    STDERR.puts "Operation failed, errno [#{ZMQ::Util.errno}] description [#{ZMQ::Util.error_string}]"
+    caller(1).each { |callstack| STDERR.puts(callstack) }
+    true
+  end
+end
+
+ctx = ZMQ::Context.create(1)
+STDERR.puts "Failed to create a Context" unless ctx
 
 # This is our publisher
 Thread.new do
   pub_sock = ctx.socket(ZMQ::PUB)
-  pub_sock.bind('tcp://127.0.0.1:2200')
+  error_check(pub_sock.setsockopt(ZMQ::LINGER, 1))
+  rc = pub_sock.bind('tcp://127.0.0.1:2200')
+  error_check(rc)
   
-  # This time, our publisher will send out messages indefinitel
+  # This time, our publisher will send out messages indefinitely
   loop do
     puts "P: Sending our first message, about the Time Machine"
     
@@ -47,16 +60,25 @@ Thread.new do
     # will use to decide if it wants to receive this message.
     # You don't need to use two parts for a pub/sub socket, but if you're using
     # topics its a good idea as matching terminates after the first part.
-    pub_sock.send_string('Important', ZMQ::SNDMORE)     #Topic
-    pub_sock.send_string('Find Time Machine')           #Body
+    rc = pub_sock.send_string('Important', ZMQ::SNDMORE)     #Topic
+    break if error_check(rc)
+    rc = pub_sock.send_string('Find Time Machine')           #Body
+    break if error_check(rc)
 
     puts "P: Sending our second message, about Brawndo"
-    pub_sock.send_string('Unimportant', ZMQ::SNDMORE)   #Topic
-    pub_sock.send_string('Drink Brawndo')               #Body
+    rc = pub_sock.send_string('Unimportant', ZMQ::SNDMORE)   #Topic
+    break if error_check(rc)
+    rc = pub_sock.send_string('Drink Brawndo')               #Body
+    break if error_check(rc)
 
     #Lets wait a second between messages
     sleep 1
   end
+  
+  # always close a socket when we're done with it otherwise
+  # the context termination will hang indefinitely
+  error_check(pub_sock.close)
+  puts "Pub thread is exiting..."
 end
 
 # Our Subscribers
@@ -67,20 +89,80 @@ sub_threads = []
 2.times do |i|
   sub_threads <<  Thread.new do
     sub_sock = ctx.socket(ZMQ::SUB)
-    sub_sock.setsockopt(ZMQ::SUBSCRIBE,'Important')
-    sub_sock.connect('tcp://127.0.0.1:2200')
+    error_check(sub_sock.setsockopt(ZMQ::LINGER, 1))
+    rc = sub_sock.setsockopt(ZMQ::SUBSCRIBE,'Important')
+    error_check(rc)
+    rc = sub_sock.connect('tcp://127.0.0.1:2200')
+    error_check(rc)
     
     5.times do
       # Since our messages are coming in multiple parts, we have to
       # check for that here
-      topic    = sub_sock.recv_string
-      body     = sub_sock.recv_string if sub_sock.more_parts?
+      topic = ''
+      rc = sub_sock.recv_string(topic)
+      break if error_check(rc)
+      body = ''
+      rc = sub_sock.recv_string(body) if sub_sock.more_parts?
+      break if error_check(rc)
       
       puts "S#{i}: I received a message! The topic was '#{topic}'"
       puts "S#{i}: The body of the message was '#{body}'"
     end
+    
+    # always close a socket when we're done with it otherwise
+    # the context termination will hang indefinitely
+    error_check(sub_sock.close)
+    puts "Thread [#{i}] is exiting..."
   end
 end
 
 sub_threads.each {|t| t.join}
+puts "Sub threads have terminated; terminating context"
+
 ctx.terminate
+puts "terminated"
+
+# A successful run looks like:
+
+#$ ruby 002_publish_subscribe.rb 
+#P: Sending our first message, about the Time Machine
+#P: Sending our second message, about Brawndo
+#P: Sending our first message, about the Time Machine
+#P: Sending our second message, about Brawndo
+#S1: I received a message! The topic was 'Important'
+#S0: I received a message! The topic was 'Important'S1: The body of the message was 'Find Time Machine'
+#
+#S0: The body of the message was 'Find Time Machine'
+#P: Sending our first message, about the Time Machine
+#P: Sending our second message, about Brawndo
+#S1: I received a message! The topic was 'Important'
+#S1: The body of the message was 'Find Time Machine'
+#S0: I received a message! The topic was 'Important'
+#S0: The body of the message was 'Find Time Machine'
+#P: Sending our first message, about the Time Machine
+#P: Sending our second message, about Brawndo
+#S1: I received a message! The topic was 'Important'
+#S1: The body of the message was 'Find Time Machine'
+#S0: I received a message! The topic was 'Important'
+#S0: The body of the message was 'Find Time Machine'
+#P: Sending our first message, about the Time Machine
+#P: Sending our second message, about Brawndo
+#S1: I received a message! The topic was 'Important'
+#S1: The body of the message was 'Find Time Machine'
+#S0: I received a message! The topic was 'Important'
+#S0: The body of the message was 'Find Time Machine'
+#P: Sending our first message, about the Time Machine
+#P: Sending our second message, about Brawndo
+#S0: I received a message! The topic was 'Important'
+#S0: The body of the message was 'Find Time Machine'
+#S1: I received a message! The topic was 'Important'
+#S1: The body of the message was 'Find Time Machine'
+#Thread [1] is exiting...Thread [0] is exiting...
+#
+#Sub threads have terminated; terminating context
+#P: Sending our first message, about the Time Machine
+#Operation failed, errno [156384765] description [Context was terminated]
+#002_publish_subscribe.rb:64:in `__script__'
+#002_publish_subscribe.rb:52:in `__script__'
+#Pub thread is exiting...
+#terminated
