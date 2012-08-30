@@ -3,7 +3,7 @@ require 'ffi-rzmq'
 Thread.abort_on_exception = true
 
 
-# PUB and SUB sockts work together to broadcast messages out to many clients
+# PUB and SUB sockets work together to broadcast messages out to many clients.
 # A single PUB socket can talk to multiple SUB sockets at the same time.
 # Messages only go one way, from the PUB to the SUB.
 # 
@@ -11,8 +11,8 @@ Thread.abort_on_exception = true
 # for an exact sequence of bytes, discarding messages that don't start with this prefix.
 #
 # One important thing to note about PUB sockets, is that when created with 'bind'
-# that is when listening for incoming SUB connections, they don't queue messages unless
-# there's a connected SUB socket, their messages are effectively black holed.
+# they are listening for incoming SUB connections. They won't queue messages unless
+# there's a connected SUB socket, and their messages are effectively black holed.
 #
 # So, don't plan on all PUB messages making their way anywhere unless there's a connected
 # SUB socket. When created with 'connect' (which is perhaps atypical for a pub/sub topology),
@@ -26,7 +26,7 @@ Thread.abort_on_exception = true
 #                         /       \
 #                  sub_sock1     sub_sock2
 #
-# Each socket will get its own thread, so you'll see them run simultanously
+# Each socket will get its own thread, so you'll see them run simultanously.
 
 def error_check(rc)
   if ZMQ::Util.resultcode_ok?(rc)
